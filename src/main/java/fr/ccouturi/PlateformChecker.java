@@ -3,6 +3,8 @@ package fr.ccouturi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PlateformChecker {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PlateformChecker.class);
+
+    private static final Integer THREAD_COUNT = 5;
+
+    // ---------------------------------------------------------------------------------------------
 
     @JsonProperty
     private String name;
@@ -35,17 +41,15 @@ public class PlateformChecker {
 
     @JsonProperty
     public Result[] getResults() {
-        // ExecutorService execute = Executors.newFixedThreadPool(10);
-        // executeRunnables(execute);
-
-        for (int index = 0; index < checkers.length; ++index) {
-            checkers[index].run();
-        }
+        long start = System.currentTimeMillis();
+        ExecutorService execute = Executors.newFixedThreadPool(THREAD_COUNT);
+        executeRunnables(execute);
 
         Result[] results = new Result[checkers.length];
         for (int index = 0; index < checkers.length; ++index) {
             results[index] = checkers[index].result;
         }
+        LOGGER.info("Check duration (milliseconds): " + (System.currentTimeMillis() - start));
         return results;
     }
 
@@ -54,8 +58,15 @@ public class PlateformChecker {
         for (Runnable r : runnables) {
             service.execute(r);
         }
-        LOGGER.info("Waiting for healthchecks ending.");
         service.shutdown();
+        LOGGER.info("Waiting for healthchecks ending.");
+        try {
+            if (!service.awaitTermination(60, TimeUnit.SECONDS)) {
+                LOGGER.error("Pool did not terminate");
+            }
+        } catch (InterruptedException e) {
+            service.shutdownNow();
+        }
         LOGGER.info("Done.");
     }
 

@@ -53,7 +53,7 @@ public class HealthChecker implements Runnable {
     }
 
     public Result getCacheResult() {
-        LOGGER.info("Get cached result or check.");
+        LOGGER.debug("Get cached result or check.");
         try {
             return (Result) cache.get(key, new Callable<Result>() {
                 @Override
