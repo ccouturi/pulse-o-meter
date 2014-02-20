@@ -33,6 +33,7 @@ public class PlateformChecker {
         }
     }
 
+    @JsonProperty
     public Result[] getResults() {
         // ExecutorService execute = Executors.newFixedThreadPool(10);
         // executeRunnables(execute);
@@ -57,4 +58,5 @@ public class PlateformChecker {
         service.shutdown();
         LOGGER.info("Done.");
     }
+
 }

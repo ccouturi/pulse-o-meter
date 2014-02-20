@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.sun.jersey.api.client.Client;
@@ -30,6 +29,8 @@ public class HealthChecker implements Runnable {
 
     // ---------------------------------------------------------------------------------------------
 
+    private Client client;
+
     private String key = UUID.randomUUID().toString();
 
     private String product;
@@ -45,16 +46,19 @@ public class HealthChecker implements Runnable {
     public HealthChecker(String product, String... urls) {
         this.product = product;
         this.urls = urls;
+
+        client = Client.create();
+        client.setConnectTimeout(CHECK_CONNECT_TIME_OUT);
+        client.setReadTimeout(CHECK_READ_TIME_OUT);
     }
 
-    @JsonIgnore
     public Result getCacheResult() {
         LOGGER.info("Get cached result or check.");
         try {
             return (Result) cache.get(key, new Callable<Result>() {
                 @Override
                 public Result call() {
-                    return compute();
+                    return check();
                 }
             });
         } catch (ExecutionException e) {
@@ -63,14 +67,11 @@ public class HealthChecker implements Runnable {
         }
     }
 
-    public Result compute() {
+    public Result check() {
         LOGGER.info("Check product health: " + product);
-        Client c = Client.create();
-        c.setConnectTimeout(CHECK_CONNECT_TIME_OUT);
-        c.setReadTimeout(CHECK_READ_TIME_OUT);
         for (String url : urls) {
             try {
-                WebResource r = c.resource(url);
+                WebResource r = client.resource(url);
                 int result = r.head().getStatus();
                 if (200 != result) {
                     LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", url, result));

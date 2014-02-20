@@ -1,5 +1,6 @@
 package fr.ccouturi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Result {
@@ -22,9 +23,25 @@ public class Result {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("product: " + product);
+        result.append("product: " + getProduct());
         result.append(", status: " + status);
         result.append(", urls" + urls);
         return result.toString();
     }
+
+    @JsonIgnore
+    public String getProduct() {
+        return product;
+    }
+
+    @JsonIgnore
+    public Boolean getStatus() {
+        return status;
+    }
+
+    @JsonIgnore
+    public String[] getUrls() {
+        return urls;
+    }
+
 }
