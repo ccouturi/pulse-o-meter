@@ -64,7 +64,7 @@ public class HealthChecker implements Runnable {
     }
 
     public Result compute() {
-        LOGGER.debug("Check product health: " + product);
+        LOGGER.info("Check product health: " + product);
         Client c = Client.create();
         c.setConnectTimeout(CHECK_CONNECT_TIME_OUT);
         c.setReadTimeout(CHECK_READ_TIME_OUT);
