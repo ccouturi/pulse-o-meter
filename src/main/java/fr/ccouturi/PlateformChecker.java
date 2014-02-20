@@ -2,9 +2,6 @@ package fr.ccouturi;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -14,25 +11,14 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
-public class PlateformChecker {
+public class PlateformChecker extends CachableChecker<Result[]> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PlateformChecker.class);
 
     private static final Integer THREAD_COUNT = 5;
 
-    private static final long CACHE_EXPIRATION_PERIOD = 5;// SECONDS
-
-    protected static Cache<String, Object> cache = CacheBuilder.newBuilder()//
-            .expireAfterWrite(CACHE_EXPIRATION_PERIOD, TimeUnit.SECONDS) //
-            .build();
-
     // ---------------------------------------------------------------------------------------------
-
-    @JsonIgnore
-    private String key = UUID.randomUUID().toString();
 
     @JsonProperty
     private String name;
@@ -53,28 +39,11 @@ public class PlateformChecker {
         }
     }
 
-    @JsonProperty
-    public Result[] getCacheResult() {
-        LOGGER.debug("Get cached result or check.");
-        long start = System.currentTimeMillis();
-        try {
-            Result[] results = (Result[]) cache.get(key, new Callable<Result[]>() {
-                @Override
-                public Result[] call() {
-                    return check();
-                }
-            });
-            LOGGER.info("Check duration (milliseconds): " + (System.currentTimeMillis() - start));
-            return results;
-        } catch (ExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            return null;
-        }
-    }
-
+    @Override
     @JsonIgnore
-    private Result[] check() {
+    protected Result[] check() {
         final ExecutorService pool = Executors.newFixedThreadPool(THREAD_COUNT);
+        long start = System.currentTimeMillis();
         for (Runnable r : runnables) {
             pool.execute(r);
         }
@@ -87,6 +56,7 @@ public class PlateformChecker {
         } catch (InterruptedException e) {
             pool.shutdownNow();
         }
+        LOGGER.info(String.format("Check in %s milliseconds for plateform %s.", System.currentTimeMillis() - start, name));
         return collectResults();
     }
 

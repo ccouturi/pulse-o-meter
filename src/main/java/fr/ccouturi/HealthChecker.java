@@ -1,37 +1,22 @@
 package fr.ccouturi;
 
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.WebResource;
 
-public class HealthChecker implements Runnable {
+public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
-
-    private static final long CACHE_EXPIRATION_PERIOD = 5;// SECONDS
 
     private static final Integer CHECK_CONNECT_TIME_OUT = 3000;// MILLISECONDS
     private static final Integer CHECK_READ_TIME_OUT = 3000;// MILLISECONDS
 
-    protected static Cache<String, Object> cache = CacheBuilder.newBuilder()//
-            .expireAfterWrite(CACHE_EXPIRATION_PERIOD, TimeUnit.SECONDS) //
-            .build();
-
     // ---------------------------------------------------------------------------------------------
 
     private Client client;
-
-    private String key = UUID.randomUUID().toString();
 
     private String product;
 
@@ -52,22 +37,8 @@ public class HealthChecker implements Runnable {
         client.setReadTimeout(CHECK_READ_TIME_OUT);
     }
 
-    public Result getCacheResult() {
-        LOGGER.debug("Get cached result or check.");
-        try {
-            return (Result) cache.get(key, new Callable<Result>() {
-                @Override
-                public Result call() {
-                    return check();
-                }
-            });
-        } catch (ExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            return null;
-        }
-    }
-
-    public Result check() {
+    @Override
+    protected Result check() {
         LOGGER.info("Check product health: " + product);
         for (String url : urls) {
             try {
@@ -88,6 +59,6 @@ public class HealthChecker implements Runnable {
 
     @Override
     public void run() {
-        result = getCacheResult();
+        result = findInCacheOrCompute();
     }
 }
