@@ -24,19 +24,32 @@ public class PlateformChecker extends CachableChecker<Result[]> {
     private String name;
 
     @JsonIgnore
-    private HealthChecker[] checkers;
+    private List<HealthChecker> checkers;
 
     @JsonIgnore
     private List<Runnable> runnables;
 
     public PlateformChecker(String name, HealthChecker... checkers) {
         this.name = name;
-        this.checkers = checkers;
+        this.checkers = new ArrayList<>(checkers.length);
 
         runnables = new ArrayList<Runnable>();
         for (HealthChecker checker : checkers) {
+            this.checkers.add(checker);
             runnables.add(checker);
         }
+    }
+
+    public PlateformChecker register(HealthChecker checker) {
+        checkers.add(checker);
+        runnables.add(checker);
+        return this;
+    }
+
+    public PlateformChecker register(String productName, String... urls) {
+        HealthChecker checker = new HealthChecker(productName, urls);
+        register(checker);
+        return this;
     }
 
     @Override
@@ -62,9 +75,11 @@ public class PlateformChecker extends CachableChecker<Result[]> {
 
     @JsonIgnore
     private Result[] collectResults() {
-        Result[] results = new Result[checkers.length];
-        for (int index = 0; index < checkers.length; ++index) {
-            results[index] = checkers[index].result;
+        int checkersCount = checkers.size();
+        Result[] results = new Result[checkersCount];
+        int index = 0;
+        for (HealthChecker checker : checkers) {
+            results[index++] = checker.result;
         }
         return results;
     }
