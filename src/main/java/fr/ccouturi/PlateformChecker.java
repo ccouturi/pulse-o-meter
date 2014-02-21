@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.ccouturi.config.HealthCheckerConfig;
+import fr.ccouturi.config.PlateformConfig;
+
 public class PlateformChecker extends CachableChecker<Result[]> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PlateformChecker.class);
@@ -29,15 +32,31 @@ public class PlateformChecker extends CachableChecker<Result[]> {
     @JsonIgnore
     private List<Runnable> runnables;
 
+    public PlateformChecker(PlateformConfig config) {
+        init(config.getPlateformName(), config.getHealthCherckersConfig());
+    }
+
     public PlateformChecker(String name, HealthChecker... checkers) {
+        init(name, checkers);
+    }
+
+    private void init(String name, HealthChecker... checkers) {
         this.name = name;
         this.checkers = new ArrayList<>(checkers.length);
 
-        runnables = new ArrayList<Runnable>();
+        runnables = new ArrayList<Runnable>(checkers.length);
         for (HealthChecker checker : checkers) {
             this.checkers.add(checker);
             runnables.add(checker);
         }
+    }
+
+    private void init(String name, List<HealthCheckerConfig> checkersConfig) {
+        HealthChecker[] checkers = new HealthChecker[checkersConfig.size()];
+        for (int index = 0; index < checkersConfig.size(); ++index) {
+            checkers[index] = new HealthChecker(checkersConfig.get(index));
+        }
+        init(name, checkers);
     }
 
     public PlateformChecker register(HealthChecker checker) {

@@ -1,0 +1,10 @@
+{
+    "plateform_configs": [
+        {"plateform_name": "staging", "checker_configs": [
+            {"name": "productA", "url": ["http://url1.fr"]},
+            {"name": "productB", "url": ["http://url1.fr", "http://url2.fr"]}
+        ]},
+        {"plateform_name": "prod", "checker_configs": [
+        ]}
+    ]
+}

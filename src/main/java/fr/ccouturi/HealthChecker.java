@@ -7,6 +7,8 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.WebResource;
 
+import fr.ccouturi.config.HealthCheckerConfig;
+
 public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
@@ -24,8 +26,8 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     public Result result;
 
-    public HealthChecker(String product) {
-        this(product, new String[0]);
+    public HealthChecker(HealthCheckerConfig config) {
+        this(config.getName(), config.getUrl());
     }
 
     public HealthChecker(String product, String... urls) {
