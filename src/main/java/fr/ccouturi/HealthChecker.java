@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import fr.ccouturi.config.HealthCheckerConfig;
@@ -15,6 +16,7 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     private static final Integer CHECK_CONNECT_TIME_OUT = 3000;// MILLISECONDS
     private static final Integer CHECK_READ_TIME_OUT = 3000;// MILLISECONDS
+    private static final String VERB = "head";
 
     // ---------------------------------------------------------------------------------------------
 
@@ -26,8 +28,11 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     public Result result;
 
+    public String verb = VERB;
+
     public HealthChecker(HealthCheckerConfig config) {
         this(config.getName(), config.getUrl());
+        verb = config.getVerb();
     }
 
     public HealthChecker(String product, String... urls) {
@@ -45,7 +50,15 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
         for (String url : urls) {
             try {
                 WebResource r = client.resource(url);
-                int result = r.head().getStatus();
+                int result;
+                switch (verb.toLowerCase()) {
+                case "get":
+                    result = r.get(ClientResponse.class).getStatus();
+                    break;
+                default:
+                    result = r.head().getStatus();
+                    break;
+                }
                 if (200 != result) {
                     LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", url, result));
                     return new Result(product, Boolean.FALSE, urls);
