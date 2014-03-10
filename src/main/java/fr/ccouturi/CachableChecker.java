@@ -12,18 +12,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-public abstract class CachableChecker<T> {
+import fr.ccouturi.config.PulseOMeterConfig;
 
-    private static final long CACHE_EXPIRATION_PERIOD = 5;// SECONDS
+public abstract class CachableChecker<T> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CachableChecker.class);
 
-    protected static Cache<String, Object> cache = CacheBuilder.newBuilder()//
-            .expireAfterWrite(CACHE_EXPIRATION_PERIOD, TimeUnit.SECONDS) //
-            .build();
+    protected static Cache<String, Object> cache;
 
     @JsonIgnore
     protected String key = UUID.randomUUID().toString();
+
+    public static void init(PulseOMeterConfig config) {
+        cache = CacheBuilder.newBuilder()//
+                .expireAfterWrite(config.getCachePeriod(), TimeUnit.SECONDS) //
+                .build();
+    }
 
     public T findInCacheOrCompute() {
         LOGGER.debug("Get cached result or compute.");

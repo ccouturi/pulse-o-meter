@@ -16,6 +16,9 @@ public class PulseOMeterConfig {
     @JsonProperty("plateform_configs")
     private List<PlateformConfig> plateformConfigs;
 
+    @JsonProperty("cache_period")
+    private int cachePeriod = 60;
+
     private PulseOMeterConfig() {
         // Ok for introspection
     }
@@ -37,6 +40,16 @@ public class PulseOMeterConfig {
     @JsonIgnore
     public void setPlateformConfigs(List<PlateformConfig> plateformConfigs) {
         this.plateformConfigs = plateformConfigs;
+    }
+
+    @JsonIgnore
+    public int getCachePeriod() {
+        return cachePeriod;
+    }
+
+    @JsonIgnore
+    public void setCachePeriod(int cachePeriod) {
+        this.cachePeriod = cachePeriod;
     }
 
     public static PulseOMeterConfig loadFromFile(File config) throws JsonParseException, JsonMappingException, IOException {

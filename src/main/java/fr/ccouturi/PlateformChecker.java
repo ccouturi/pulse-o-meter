@@ -74,6 +74,7 @@ public class PlateformChecker extends CachableChecker<Result[]> {
     @Override
     @JsonIgnore
     protected Result[] check() {
+        LOGGER.info("Check plateform " + name);
         final ExecutorService pool = Executors.newFixedThreadPool(THREAD_COUNT);
         long start = System.currentTimeMillis();
         for (Runnable r : runnables) {

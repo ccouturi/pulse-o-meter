@@ -26,7 +26,7 @@ public class TestConfig {
         String expectedProductB = "{\"name\":\"productB\",\"verb\":\"head\",\"url\":[\"http://url1.fr\",\"http://url2.fr\"]}";
         String expectedPateform1 = String.format("{\"plateform_name\":\"staging\",\"checker_configs\":[%s,%s]}", expectedProductA, expectedProductB);
         String expectedPateform2 = "{\"plateform_name\":\"prod\",\"checker_configs\":[]}";
-        String expectedConfig = String.format("{\"plateform_configs\":[%s,%s]}", expectedPateform1, expectedPateform2);
+        String expectedConfig = String.format("{\"plateform_configs\":[%s,%s],\"cache_period\":60}", expectedPateform1, expectedPateform2);
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(expectedProductA, mapper.writeValueAsString(productA));

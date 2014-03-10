@@ -34,6 +34,7 @@ public class PulseOMeter {
     }
 
     private void init(PulseOMeterConfig config) {
+        CachableChecker.init(config);
         for (PlateformConfig PlateformConfig : config.getPlateformsConfig()) {
             getPlateformChekers().add(new PlateformChecker(PlateformConfig));
         }

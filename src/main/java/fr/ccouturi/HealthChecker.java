@@ -46,7 +46,7 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     @Override
     protected Result check() {
-        LOGGER.info("Check product health: " + product);
+        LOGGER.debug("Check product health: " + product);
         for (String url : urls) {
             try {
                 WebResource r = client.resource(url);
