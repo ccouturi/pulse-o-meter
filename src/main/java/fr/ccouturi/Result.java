@@ -14,6 +14,10 @@ public class Result {
     @JsonProperty
     public String[] urls;
 
+    private Result() {
+        // for introspection
+    }
+
     public Result(String product, Boolean status, String... urls) {
         this.product = product;
         this.status = status;

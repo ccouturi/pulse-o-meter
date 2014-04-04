@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.ccouturi.config.HealthCheckerConfig;
 import fr.ccouturi.config.PlateformConfig;
 
-public class PlateformChecker extends CachableChecker<Result[]> {
+public class PlateformChecker extends CachableChecker<List<Result>> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PlateformChecker.class);
 
@@ -73,7 +73,7 @@ public class PlateformChecker extends CachableChecker<Result[]> {
 
     @Override
     @JsonIgnore
-    protected Result[] check() {
+    protected List<Result> check() {
         LOGGER.info("Check plateform " + name);
         final ExecutorService pool = Executors.newFixedThreadPool(THREAD_COUNT);
         long start = System.currentTimeMillis();
@@ -94,12 +94,10 @@ public class PlateformChecker extends CachableChecker<Result[]> {
     }
 
     @JsonIgnore
-    private Result[] collectResults() {
-        int checkersCount = checkers.size();
-        Result[] results = new Result[checkersCount];
-        int index = 0;
+    private List<Result> collectResults() {
+        List<Result> results = new ArrayList<Result>();
         for (HealthChecker checker : checkers) {
-            results[index++] = checker.result;
+            results.addAll(checker.results);
         }
         return results;
     }

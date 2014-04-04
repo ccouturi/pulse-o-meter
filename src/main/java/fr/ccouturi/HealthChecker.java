@@ -1,21 +1,27 @@
 package fr.ccouturi;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 
 import fr.ccouturi.config.HealthCheckerConfig;
 
-public class HealthChecker extends CachableChecker<Result> implements Runnable {
+public class HealthChecker extends CachableChecker<List<Result>> implements Runnable {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
 
-    private static final Integer CHECK_CONNECT_TIME_OUT = 3000;// MILLISECONDS
-    private static final Integer CHECK_READ_TIME_OUT = 3000;// MILLISECONDS
+    private static final Integer CHECK_CONNECT_TIME_OUT = 5000;// MILLISECONDS
+    private static final Integer CHECK_READ_TIME_OUT = 5000;// MILLISECONDS
     private static final String VERB = "head";
 
     // ---------------------------------------------------------------------------------------------
@@ -26,13 +32,16 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
 
     public String[] urls;
 
-    public Result result;
+    public List<Result> results;
 
     public String verb = VERB;
+
+    public boolean proxy = false;
 
     public HealthChecker(HealthCheckerConfig config) {
         this(config.getName(), config.getUrl());
         verb = config.getVerb();
+        proxy = config.isProxy();
     }
 
     public HealthChecker(String product, String... urls) {
@@ -45,35 +54,60 @@ public class HealthChecker extends CachableChecker<Result> implements Runnable {
     }
 
     @Override
-    protected Result check() {
+    protected List<Result> check() {
+        List<Result> results = new ArrayList<Result>();
         LOGGER.debug("Check product health: " + product);
+        if (urls == null || urls.length == 0) {
+            results.add(new Result(product, null, urls));
+        }
         for (String url : urls) {
             try {
                 WebResource r = client.resource(url);
-                int result;
+                ClientResponse response = null;
                 switch (verb.toLowerCase()) {
                 case "get":
-                    result = r.get(ClientResponse.class).getStatus();
+                    response = r.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                    if (proxy) {
+                        results.addAll(parseResponse(response));
+                        System.out.println(results);
+                    } else {
+                        results.add(parseResponse(response.getStatus()));
+                    }
                     break;
                 default:
-                    result = r.head().getStatus();
+                    results.add(parseResponse(r.head().getStatus()));
                     break;
                 }
-                if (200 != result) {
-                    LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", url, result));
-                    return new Result(product, Boolean.FALSE, urls);
-                }
-                return new Result(product, Boolean.TRUE, urls);
             } catch (ClientHandlerException e) {
                 LOGGER.warn(String.format("Exception (%s) during healthcheck inspection for: %s.", e.getMessage(), url));
-                return new Result(product, Boolean.FALSE, urls);
+                results.add(new Result(product, Boolean.FALSE, urls));
             }
         }
-        return new Result(product, null, urls);
+        return results;
+    }
+
+    private List<Result> parseResponse(ClientResponse response) {
+        if (200 == response.getStatus()) {
+            return response.getEntity(new GenericType<List<Result>>() {
+            });
+        } else {
+            List<Result> results = new ArrayList<Result>();
+            results.add(new Result(product, Boolean.FALSE, urls));
+            return results;
+        }
+    }
+
+    private Result parseResponse(int status) {
+        if (200 == status) {
+            return new Result(product, Boolean.TRUE, urls);
+        } else {
+            LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls, status));
+            return new Result(product, Boolean.FALSE, urls);
+        }
     }
 
     @Override
     public void run() {
-        result = findInCacheOrCompute();
+        results = findInCacheOrCompute();
     }
 }

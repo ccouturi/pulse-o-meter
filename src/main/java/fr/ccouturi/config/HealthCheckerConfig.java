@@ -14,6 +14,9 @@ public class HealthCheckerConfig {
     @JsonProperty
     private String[] url;
 
+    @JsonProperty
+    private boolean proxy = false;
+
     private HealthCheckerConfig() {
         // Ok for introspection
     }
@@ -52,5 +55,15 @@ public class HealthCheckerConfig {
     @JsonIgnore
     public void setVerb(String verb) {
         this.verb = verb;
+    }
+
+    @JsonIgnore
+    public boolean isProxy() {
+        return proxy;
+    }
+
+    @JsonIgnore
+    public void setProxy(boolean proxy) {
+        this.proxy = proxy;
     }
 }
