@@ -17,6 +17,9 @@ public class HealthCheckerConfig {
     @JsonProperty
     private boolean proxy = false;
 
+    @JsonProperty
+    private int timeout = 5000;
+
     private HealthCheckerConfig() {
         // Ok for introspection
     }
@@ -65,5 +68,15 @@ public class HealthCheckerConfig {
     @JsonIgnore
     public void setProxy(boolean proxy) {
         this.proxy = proxy;
+    }
+
+    @JsonIgnore
+    public int getTimeout() {
+        return timeout;
+    }
+
+    @JsonIgnore
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 }
