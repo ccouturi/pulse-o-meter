@@ -38,7 +38,7 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     public boolean proxy = false;
 
-    public int timeout = CHECK_READ_TIME_OUT;
+    public int timeout;
 
     public HealthChecker(HealthCheckerConfig config) {
         this(config.getName(), config.getUrl());
@@ -53,7 +53,11 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
         client = Client.create();
         client.setConnectTimeout(CHECK_CONNECT_TIME_OUT);
-        client.setReadTimeout(timeout);
+        if (timeout <= 0) {
+            client.setReadTimeout(CHECK_READ_TIME_OUT);
+        } else {
+            client.setReadTimeout(timeout);
+        }
     }
 
     @Override

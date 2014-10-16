@@ -18,7 +18,7 @@ public class HealthCheckerConfig {
     private boolean proxy = false;
 
     @JsonProperty
-    private int timeout = 5000;
+    private int timeout;
 
     private HealthCheckerConfig() {
         // Ok for introspection
