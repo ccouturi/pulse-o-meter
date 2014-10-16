@@ -76,13 +76,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
                     response = r.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                     if (proxy) {
                         results.addAll(parseResponse(response));
-                        System.out.println(results);
                     } else {
-                        results.add(parseResponse(response.getStatus()));
+                        results.add(parseResponse(response.getStatus(), response.getEntity(String.class)));
                     }
                     break;
                 default:
-                    results.add(parseResponse(r.head().getStatus()));
+                    results.add(parseResponse(r.head().getStatus(), ""));
                     break;
                 }
             } catch (ClientHandlerException e) {
@@ -104,12 +103,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
         }
     }
 
-    private Result parseResponse(int status) {
+    private Result parseResponse(int status, String content) {
         if (200 == status) {
-            return new Result(product, Boolean.TRUE, urls);
+            return new Result(product, content, Boolean.TRUE, urls);
         } else {
             LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls, status));
-            return new Result(product, Boolean.FALSE, urls);
+            return new Result(product, content, Boolean.FALSE, urls);
         }
     }
 

@@ -14,6 +14,9 @@ public class Result {
     @JsonProperty
     public String[] urls;
 
+    @JsonProperty
+    private String content;
+
     private Result() {
         // for introspection
     }
@@ -21,6 +24,13 @@ public class Result {
     public Result(String product, Boolean status, String... urls) {
         this.product = product;
         this.status = status;
+        this.urls = urls;
+    }
+
+    public Result(String product, String content, Boolean status, String... urls) {
+        this.product = product;
+        this.status = status;
+        this.content = content;
         this.urls = urls;
     }
 
@@ -46,6 +56,11 @@ public class Result {
     @JsonIgnore
     public String[] getUrls() {
         return urls;
+    }
+
+    @JsonIgnore
+    public String getContent() {
+        return content;
     }
 
 }

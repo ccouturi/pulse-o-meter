@@ -22,8 +22,8 @@ public class TestConfig {
         PlateformConfig plateform2 = new PlateformConfig("prod");
         PulseOMeterConfig config = new PulseOMeterConfig(plateform1, plateform2);
 
-        String expectedProductA = "{\"name\":\"productA\",\"verb\":\"head\",\"url\":[\"http://url1.fr\"],\"proxy\":false,\"timeout\":5000}";
-        String expectedProductB = "{\"name\":\"productB\",\"verb\":\"head\",\"url\":[\"http://url1.fr\",\"http://url2.fr\"],\"proxy\":false,\"timeout\":5000}";
+        String expectedProductA = "{\"name\":\"productA\",\"verb\":\"head\",\"url\":[\"http://url1.fr\"],\"proxy\":false,\"timeout\":0}";
+        String expectedProductB = "{\"name\":\"productB\",\"verb\":\"head\",\"url\":[\"http://url1.fr\",\"http://url2.fr\"],\"proxy\":false,\"timeout\":0}";
         String expectedPateform1 = String.format("{\"plateform_name\":\"staging\",\"checker_configs\":[%s,%s]}", expectedProductA, expectedProductB);
         String expectedPateform2 = "{\"plateform_name\":\"prod\",\"checker_configs\":[]}";
         String expectedConfig = String.format("{\"plateform_configs\":[%s,%s],\"cache_period\":60}", expectedPateform1, expectedPateform2);

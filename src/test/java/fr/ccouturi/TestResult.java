@@ -11,7 +11,7 @@ public class TestResult {
 
     @Test
     public void shouldConverttoJson() throws JsonProcessingException {
-        Result result = new Result("my_product", Boolean.TRUE, "http://test.fr");
+        Result result = new Result("my_product", Boolean.TRUE, "PASS", "http://test.fr");
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("{\"product\":\"my_product\",\"status\":true,\"urls\":[\"http://test.fr\"]}", mapper.writeValueAsString(result));
     }
