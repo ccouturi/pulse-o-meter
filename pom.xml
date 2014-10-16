@@ -8,6 +8,17 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
+	<distributionManagement>
+		<repository>
+			<id>nova</id>
+			<url>http://nibbler:9081/nexus/content/repositories/nova</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>http://nibbler:9081/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.google.guava</groupId>
