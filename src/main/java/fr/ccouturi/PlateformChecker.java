@@ -19,7 +19,7 @@ public class PlateformChecker extends CachableChecker<List<Result>> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PlateformChecker.class);
 
-    private static final Integer THREAD_COUNT = 5;
+    private static final Integer THREAD_COUNT = 20;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ public class PlateformChecker extends CachableChecker<List<Result>> {
         pool.shutdown();
         LOGGER.info("Waiting for healthchecks ending.");
         try {
-            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!pool.awaitTermination(50, TimeUnit.SECONDS)) {
                 LOGGER.error("Pool did not terminate");
             }
         } catch (InterruptedException e) {

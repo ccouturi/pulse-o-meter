@@ -3,7 +3,9 @@ package fr.ccouturi;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -12,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.ccouturi.config.PlateformConfig;
 import fr.ccouturi.config.PulseOMeterConfig;
 
-public class PulseOMeter {
+public class PulseOMeter extends CachableChecker<Map<String, List<Result>>> {
 
     private List<PlateformChecker> plateformChekers = new ArrayList<>();
 
@@ -34,14 +36,19 @@ public class PulseOMeter {
     }
 
     private void init(PulseOMeterConfig config) {
-        CachableChecker.init(config);
+        CachableChecker.initCache(config);
         for (PlateformConfig PlateformConfig : config.getPlateformsConfig()) {
-            getPlateformChekers().add(new PlateformChecker(PlateformConfig));
+            plateformChekers.add(new PlateformChecker(PlateformConfig));
         }
     }
 
-    public List<PlateformChecker> getPlateformChekers() {
-        return plateformChekers;
+    @Override
+    protected Map<String, List<Result>> check() {
+        Map<String, List<Result>> results = new HashMap<>();
+        for (PlateformChecker plateformChecker : plateformChekers) {
+            results.put(plateformChecker.key, plateformChecker.getResult());
+        }
+        return results;
     }
 
 }

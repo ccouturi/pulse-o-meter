@@ -20,8 +20,8 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
 
-    private static final Integer CHECK_CONNECT_TIME_OUT = 5000;// MILLISECONDS
-    private static final Integer CHECK_READ_TIME_OUT = 5000;// MILLISECONDS
+    private static final Integer CHECK_CONNECT_TIME_OUT = 10000;// MILLISECONDS
+    private static final Integer CHECK_READ_TIME_OUT = 10000;// MILLISECONDS
     private static final String VERB = "head";
 
     // ---------------------------------------------------------------------------------------------

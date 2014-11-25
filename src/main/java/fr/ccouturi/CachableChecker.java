@@ -23,7 +23,7 @@ public abstract class CachableChecker<T> {
     @JsonIgnore
     protected String key = UUID.randomUUID().toString();
 
-    public static void init(PulseOMeterConfig config) {
+    public static void initCache(PulseOMeterConfig config) {
         cache = CacheBuilder.newBuilder()//
                 .expireAfterWrite(config.getCachePeriod(), TimeUnit.SECONDS) //
                 .build();
