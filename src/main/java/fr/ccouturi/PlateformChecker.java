@@ -42,6 +42,7 @@ public class PlateformChecker extends CachableChecker<List<Result>> {
 
     private void init(String name, HealthChecker... checkers) {
         this.name = name;
+        key = name;
         this.checkers = new ArrayList<>(checkers.length);
 
         runnables = new ArrayList<Runnable>(checkers.length);
@@ -62,12 +63,6 @@ public class PlateformChecker extends CachableChecker<List<Result>> {
     public PlateformChecker register(HealthChecker checker) {
         checkers.add(checker);
         runnables.add(checker);
-        return this;
-    }
-
-    public PlateformChecker register(String productName, String... urls) {
-        HealthChecker checker = new HealthChecker(productName, urls);
-        register(checker);
         return this;
     }
 

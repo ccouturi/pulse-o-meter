@@ -38,16 +38,13 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     public boolean proxy = false;
 
-    public int timeout;
-
     public HealthChecker(HealthCheckerConfig config) {
-        this(config.getName(), config.getUrl());
+        this(config.getName(), config.getTimeout(), config.getUrl());
         verb = config.getVerb();
         proxy = config.isProxy();
-        timeout = config.getTimeout();
     }
 
-    public HealthChecker(String product, String... urls) {
+    public HealthChecker(String product, int timeout, String... urls) {
         this.product = product;
         this.urls = urls;
 
