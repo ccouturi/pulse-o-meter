@@ -6,13 +6,15 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
 
 public class TestResult {
 
     @Test
     public void shouldConverttoJson() throws JsonProcessingException {
-        Result result = new Result("my_product", "PASS", Boolean.TRUE, "http://test.fr");
+        Date now = new Date(123456L);
+        Result result = new Result("my_product", "PASS", Boolean.TRUE, "1.4", now, "http://test.fr");
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals("{\"product\":\"my_product\",\"status\":true,\"urls\":[\"http://test.fr\"],\"content\":\"PASS\"}", mapper.writeValueAsString(result));
+        assertEquals("{\"product\":\"my_product\",\"status\":true,\"urls\":[\"http://test.fr\"],\"content\":\"PASS\",\"version\":\"1.4\",\"check_date\":123456}", mapper.writeValueAsString(result));
     }
 }

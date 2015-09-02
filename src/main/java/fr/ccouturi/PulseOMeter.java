@@ -2,10 +2,7 @@ package fr.ccouturi;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -45,8 +42,10 @@ public class PulseOMeter extends CachableChecker<Map<String, List<Result>>> {
     @Override
     protected Map<String, List<Result>> check() {
         Map<String, List<Result>> results = new HashMap<>();
+
         for (PlateformChecker plateformChecker : plateformChekers) {
-            results.put(plateformChecker.key, plateformChecker.getResult());
+            List<Result> plateformResults = plateformChecker.getResult();
+            results.put(plateformChecker.key, plateformResults);
         }
         return results;
     }

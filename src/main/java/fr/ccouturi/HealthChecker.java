@@ -2,6 +2,7 @@ package fr.ccouturi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 import javax.ws.rs.core.MediaType;
 
@@ -74,11 +75,11 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
                     if (proxy) {
                         results.addAll(parseResponse(response));
                     } else {
-                        results.add(parseResponse(response.getStatus(), response.getEntity(String.class)));
+                        results.add(parseResponse(response.getStatus(), response.getHeaders().getFirst("version"), response.getEntity(String.class)));
                     }
                     break;
                 default:
-                    results.add(parseResponse(r.head().getStatus(), ""));
+                    results.add(parseResponse(r.head().getStatus(), response.getHeaders().getFirst("version"), ""));
                     break;
                 }
             } catch (ClientHandlerException e) {
@@ -100,12 +101,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
         }
     }
 
-    private Result parseResponse(int status, String content) {
+    private Result parseResponse(int status, String version, String content) {
         if (200 == status) {
-            return new Result(product, content, Boolean.TRUE, urls);
+            return new Result(product, content, Boolean.TRUE, version, new Date(), urls);
         } else {
             LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls, status));
-            return new Result(product, content, Boolean.FALSE, urls);
+            return new Result(product, content, Boolean.FALSE, version, new Date(),urls);
         }
     }
 
