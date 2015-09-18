@@ -1,20 +1,15 @@
 package fr.ccouturi;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
-
+import com.sun.jersey.api.client.*;
 import fr.ccouturi.config.HealthCheckerConfig;
 
 public class HealthChecker extends CachableChecker<List<Result>> implements Runnable {
@@ -33,7 +28,7 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     public String[] urls;
 
-    public List<Result> results;
+    public List<Result> results = new ArrayList<>();
 
     public String verb = VERB;
 
@@ -107,8 +102,11 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     private List<Result> parseResponse(ClientResponse response) {
         if (200 == response.getStatus()) {
-            return response.getEntity(new GenericType<List<Result>>() {
-            });
+            List<Result> results = new ArrayList<>();
+            results.addAll(response.getEntity(new GenericType<List<Result>>() {
+            }));
+            results.add(new Result(product, "", Boolean.TRUE, getVersion(response), new Date(), urls));
+            return results;
         } else {
             List<Result> results = new ArrayList<Result>();
             results.add(new Result(product, Boolean.FALSE, urls));
