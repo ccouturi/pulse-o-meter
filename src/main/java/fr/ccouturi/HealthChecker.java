@@ -22,6 +22,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
 
     // ---------------------------------------------------------------------------------------------
 
+    public static void main(String args[]) {
+        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://supernova.serenity2.novapost.net:8888/healthchecks");
+        config.setProxy(true);
+        System.out.println(new HealthChecker(config).check());
+    }
+
     private Client client;
 
     private String product;
@@ -70,12 +76,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
                     if (proxy) {
                         results.addAll(parseResponse(response));
                     } else {
-                        results.add(parseResponse(response.getStatus(), response.getHeaders().getFirst("version"), response.getEntity(String.class)));
+                        results.add(parseResponse(response.getStatus(), getVersion(response), response.getEntity(String.class)));
                     }
                     break;
                 case "head":
                     response = r.accept(MediaType.APPLICATION_JSON).head();
-                    results.add(parseResponse(response.getStatus(), response.getHeaders().getFirst("version"), response.getEntity(String.class)));
+                    results.add(parseResponse(response.getStatus(), getVersion(response), response.getEntity(String.class)));
                     break;
                 default:
                     results.add(parseResponse(r.head().getStatus(), getVersion(response), ""));
@@ -92,7 +98,7 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
     private String getVersion(ClientResponse response) {
         if (response != null && response.getHeaders() != null) {
             if (response.getHeaders().getFirst("X-Version") != null) {
-                response.getHeaders().getFirst("X-Version");
+                return response.getHeaders().getFirst("X-Version");
             } else {
                 return response.getHeaders().getFirst("version");
             }
