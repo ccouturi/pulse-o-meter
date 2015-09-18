@@ -78,8 +78,12 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
                         results.add(parseResponse(response.getStatus(), response.getHeaders().getFirst("version"), response.getEntity(String.class)));
                     }
                     break;
+                case "head":
+                    response = r.accept(MediaType.APPLICATION_JSON).head();
+                    results.add(parseResponse(response.getStatus(), response.getHeaders().getFirst("version"), response.getEntity(String.class)));
+                    break;
                 default:
-                    results.add(parseResponse(r.head().getStatus(), response.getHeaders().getFirst("version"), ""));
+                    results.add(parseResponse(r.head().getStatus(), getVersion(response), ""));
                     break;
                 }
             } catch (ClientHandlerException e) {
@@ -88,6 +92,17 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
             }
         }
         return results;
+    }
+
+    private String getVersion(ClientResponse response) {
+        if (response != null && response.getHeaders() != null) {
+            if (response.getHeaders().getFirst("X-Version") != null) {
+                response.getHeaders().getFirst("X-Version");
+            } else {
+                return response.getHeaders().getFirst("version");
+            }
+        }
+        return null;
     }
 
     private List<Result> parseResponse(ClientResponse response) {
@@ -106,7 +121,7 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
             return new Result(product, content, Boolean.TRUE, version, new Date(), urls);
         } else {
             LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls, status));
-            return new Result(product, content, Boolean.FALSE, version, new Date(),urls);
+            return new Result(product, content, Boolean.FALSE, version, new Date(), urls);
         }
     }
 
