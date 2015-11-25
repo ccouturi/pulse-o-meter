@@ -4,15 +4,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.*;
 import fr.ccouturi.config.HealthCheckerConfig;
 
-public class HealthChecker extends CachableChecker<List<Result>> implements Runnable {
+public class HealthChecker extends CachableChecker<List<Result>>implements Runnable {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
 
@@ -50,44 +57,44 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
         this.product = product;
         this.urls = urls;
 
-        client = Client.create();
-        client.setConnectTimeout(CHECK_CONNECT_TIME_OUT);
-        if (timeout <= 0) {
-            client.setReadTimeout(CHECK_READ_TIME_OUT);
-        } else {
-            client.setReadTimeout(timeout);
-        }
+        ClientConfig config = new ClientConfig()//
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true)//
+                .property(ClientProperties.CONNECT_TIMEOUT, CHECK_CONNECT_TIME_OUT)//
+                .property(ClientProperties.READ_TIMEOUT, timeout <= 0 ? CHECK_READ_TIME_OUT : timeout);
+        client = ClientBuilder.newClient(config);
+
     }
 
     @Override
     protected List<Result> check() {
-        List<Result> results = new ArrayList<Result>();
+        List<Result> results = new ArrayList<>();
         LOGGER.debug("Check product health: " + product);
         if (urls == null || urls.length == 0) {
             results.add(new Result(product, null, urls));
         }
         for (String url : urls) {
             try {
-                WebResource r = client.resource(url);
-                ClientResponse response = null;
+                WebTarget r = client.target(url);
+                Response response;
                 switch (verb.toLowerCase()) {
                 case "get":
-                    response = r.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                    response = r.request().accept(MediaType.APPLICATION_JSON).get();
                     if (proxy) {
                         results.addAll(parseResponse(response));
                     } else {
-                        results.add(parseResponse(response.getStatus(), getVersion(response), response.getEntity(String.class)));
+                        results.add(parseResponse(response.getStatus(), getVersion(response), response.readEntity(String.class)));
                     }
                     break;
                 case "head":
-                    response = r.accept(MediaType.APPLICATION_JSON).head();
-                    results.add(parseResponse(response.getStatus(), getVersion(response), response.getEntity(String.class)));
+                    response = r.request().accept(MediaType.APPLICATION_JSON).head();
+                    results.add(parseResponse(response.getStatus(), getVersion(response), response.readEntity(String.class)));
                     break;
                 default:
-                    results.add(parseResponse(r.head().getStatus(), getVersion(response), ""));
+                    response = r.request().accept(MediaType.APPLICATION_JSON).head();
+                    results.add(parseResponse(response.getStatus(), getVersion(response), ""));
                     break;
                 }
-            } catch (ClientHandlerException e) {
+            } catch (Exception e) {
                 LOGGER.warn(String.format("Exception (%s) during healthcheck inspection for: %s.", e.getMessage(), url));
                 results.add(new Result(product, Boolean.FALSE, urls));
             }
@@ -95,26 +102,26 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
         return results;
     }
 
-    private String getVersion(ClientResponse response) {
+    private String getVersion(Response response) {
         if (response != null && response.getHeaders() != null) {
             if (response.getHeaders().getFirst("X-Version") != null) {
-                return response.getHeaders().getFirst("X-Version");
+                return response.getHeaders().getFirst("X-Version").toString();
             } else {
-                return response.getHeaders().getFirst("version");
+                return response.getHeaders().getFirst("version").toString();
             }
         }
         return null;
     }
 
-    private List<Result> parseResponse(ClientResponse response) {
+    private List<Result> parseResponse(Response response) {
         if (200 == response.getStatus()) {
             List<Result> results = new ArrayList<>();
-            results.addAll(response.getEntity(new GenericType<List<Result>>() {
+            results.addAll(new ObjectMapper().readValue(response.readEntity(String.class), new TypeReference<List<String>>() {
             }));
             results.add(new Result(product, "", Boolean.TRUE, getVersion(response), new Date(), urls));
             return results;
         } else {
-            List<Result> results = new ArrayList<Result>();
+            List<Result> results = new ArrayList<>();
             results.add(new Result(product, Boolean.FALSE, urls));
             return results;
         }
@@ -124,7 +131,7 @@ public class HealthChecker extends CachableChecker<List<Result>> implements Runn
         if (200 == status) {
             return new Result(product, content, Boolean.TRUE, version, new Date(), urls);
         } else {
-            LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls, status));
+            LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls.toString(), status));
             return new Result(product, content, Boolean.FALSE, version, new Date(), urls);
         }
     }
