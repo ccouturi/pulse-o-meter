@@ -1,5 +1,6 @@
 package fr.ccouturi;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -113,10 +114,10 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
         return null;
     }
 
-    private List<Result> parseResponse(Response response) {
+    private List<Result> parseResponse(Response response) throws IOException {
         if (200 == response.getStatus()) {
             List<Result> results = new ArrayList<>();
-            results.addAll(new ObjectMapper().readValue(response.readEntity(String.class), new TypeReference<List<String>>() {
+            results.addAll(new ObjectMapper().readValue(response.readEntity(String.class),  new TypeReference<List<String>>() {
             }));
             results.add(new Result(product, "", Boolean.TRUE, getVersion(response), new Date(), urls));
             return results;
