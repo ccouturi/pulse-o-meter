@@ -31,7 +31,7 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     // ---------------------------------------------------------------------------------------------
 
     public static void main(String args[]) {
-        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://supernova.serenity2.novapost.net:8888/healthchecks");
+        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://keynectis-wrapper.serenity2.novapost.net:8041/healthcheck");
         config.setProxy(true);
         System.out.println(new HealthChecker(config).check());
     }
@@ -104,14 +104,15 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     }
 
     private String getVersion(Response response) {
-        if (response != null && response.getHeaders() != null) {
-            if (response.getHeaders().getFirst("X-Version") != null) {
-                return response.getHeaders().getFirst("X-Version").toString();
-            } else {
-                return response.getHeaders().getFirst("version").toString();
+        String result = null;
+        if (null != response ) {
+            Object x_version = response.getHeaders().getFirst("X-Version");
+            Object foundVersion = (null != x_version) ? x_version : response.getHeaders().getFirst("version");
+            if(null != foundVersion) {
+                result = foundVersion.toString();
             }
         }
-        return null;
+        return result;
     }
 
     private List<Result> parseResponse(Response response) throws IOException {
