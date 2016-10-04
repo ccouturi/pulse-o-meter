@@ -34,6 +34,13 @@ public class Result {
         this.urls = urls;
     }
 
+    public Result(String product, String content, Boolean status, String... urls) {
+        this.product = product;
+        this.status = status;
+        this.content = content;
+        this.urls = urls;
+    }
+
     public Result(String product, String content, Boolean status, String version, Date date, String... urls) {
         this.product = product;
         this.status = status;
@@ -50,6 +57,7 @@ public class Result {
         result.append(", status: " + status);
         result.append(", urls: " + urls);
         result.append(", version: "+version);
+        result.append(", content: "+content);
         return result.toString();
     }
 

@@ -31,8 +31,9 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     // ---------------------------------------------------------------------------------------------
 
     public static void main(String args[]) {
-        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://keynectis-wrapper.serenity2.novapost.net:8041/healthcheck");
-        config.setProxy(true);
+        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://localhost:9000/plateformtoto");
+        config.setVerb("get");
+        config.setProxy(false);
         System.out.println(new HealthChecker(config).check());
     }
 
@@ -97,7 +98,7 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
                 }
             } catch (Exception e) {
                 LOGGER.warn(String.format("Exception (%s) during healthcheck inspection for: %s.", e.getMessage(), url));
-                results.add(new Result(product, Boolean.FALSE, urls));
+                results.add(new Result(product, e.getMessage(), Boolean.FALSE, urls));
             }
         }
         return results;
@@ -118,13 +119,14 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     private List<Result> parseResponse(Response response) throws IOException {
         if (200 == response.getStatus()) {
             List<Result> results = new ArrayList<>();
-            results.addAll(new ObjectMapper().readValue(response.readEntity(String.class),  new TypeReference<List<String>>() {
+            results.addAll(new ObjectMapper().readValue(response.readEntity(String.class),  new TypeReference<List<Result>>() {
             }));
             results.add(new Result(product, "", Boolean.TRUE, getVersion(response), new Date(), urls));
             return results;
         } else {
+            LOGGER.warn(String.format("Unexpected status code [%s].", response.getStatus()));
             List<Result> results = new ArrayList<>();
-            results.add(new Result(product, Boolean.FALSE, urls));
+            results.add(new Result(product, response.readEntity(String.class), Boolean.FALSE, urls));
             return results;
         }
     }
