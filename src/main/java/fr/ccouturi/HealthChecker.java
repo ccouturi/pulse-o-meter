@@ -133,7 +133,7 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
 
     private Result parseResponse(int status, String version, String content) {
         if (200 == status) {
-            return new Result(product, content, Boolean.TRUE, version, new Date(), urls);
+            return new Result(product, "", Boolean.TRUE, version, new Date(), urls);
         } else {
             LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls.toString(), status));
             return new Result(product, content, Boolean.FALSE, version, new Date(), urls);
