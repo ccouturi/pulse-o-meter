@@ -24,6 +24,7 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
 
     private static Logger LOGGER = LoggerFactory.getLogger(HealthChecker.class);
 
+    private static final String PDUI_HEADER = "PDUI-Version";
     private static final Integer CHECK_CONNECT_TIME_OUT = 10000;// MILLISECONDS
     private static final Integer CHECK_READ_TIME_OUT = 10000;// MILLISECONDS
     private static final String VERB = "head";
@@ -31,9 +32,9 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     // ---------------------------------------------------------------------------------------------
 
     public static void main(String args[]) {
-        HealthCheckerConfig config = new HealthCheckerConfig("test", "http://localhost:9000/plateformtoto");
+        HealthCheckerConfig config = new HealthCheckerConfig("test", "https://peoplecare.integration.people-doc.com/healthchecks");
         config.setVerb("get");
-        config.setProxy(false);
+        config.setProxy(true);
         System.out.println(new HealthChecker(config).check());
     }
 
@@ -84,16 +85,16 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
                     if (proxy) {
                         results.addAll(parseResponse(response));
                     } else {
-                        results.add(parseResponse(response.getStatus(), getVersion(response), response.readEntity(String.class)));
+                        results.add(parseResponse(response.getStatus(), getVersion(response), getPduiVersion(response), response.readEntity(String.class)));
                     }
                     break;
                 case "head":
                     response = r.request().accept(MediaType.APPLICATION_JSON).head();
-                    results.add(parseResponse(response.getStatus(), getVersion(response), response.readEntity(String.class)));
+                    results.add(parseResponse(response.getStatus(), getVersion(response), getPduiVersion(response), response.readEntity(String.class)));
                     break;
                 default:
                     response = r.request().accept(MediaType.APPLICATION_JSON).head();
-                    results.add(parseResponse(response.getStatus(), getVersion(response), ""));
+                    results.add(parseResponse(response.getStatus(), getVersion(response), getPduiVersion(response),""));
                     break;
                 }
             } catch (Exception e) {
@@ -108,9 +109,20 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
         String result = null;
         if (null != response ) {
             Object x_version = response.getHeaders().getFirst("X-Version");
-            Object foundVersion = (null != x_version) ? x_version : response.getHeaders().getFirst("version");
+            Object foundVersion = (null != x_version) ? x_version : response.getHeaders().getFirst("Version");
             if(null != foundVersion) {
                 result = foundVersion.toString();
+            }
+        }
+        return result;
+    }
+
+    private String getPduiVersion(Response response) {
+        String result = null;
+        if (null != response ) {
+            Object pduiVersion = response.getHeaders().getFirst(PDUI_HEADER);
+            if(null != pduiVersion) {
+                result = pduiVersion.toString();
             }
         }
         return result;
@@ -121,7 +133,7 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
             List<Result> results = new ArrayList<>();
             results.addAll(new ObjectMapper().readValue(response.readEntity(String.class),  new TypeReference<List<Result>>() {
             }));
-            results.add(new Result(product, "", Boolean.TRUE, getVersion(response), new Date(), urls));
+            results.add(new Result(product, "", Boolean.TRUE, getVersion(response), getPduiVersion(response), new Date(), urls));
             return results;
         } else {
             LOGGER.warn(String.format("Unexpected status code [%s].", response.getStatus()));
@@ -132,8 +144,12 @@ public class HealthChecker extends CachableChecker<List<Result>>implements Runna
     }
 
     private Result parseResponse(int status, String version, String content) {
+        return parseResponse(status, version, null, content);
+    }
+
+    private Result parseResponse(int status, String version, String pduiVersion, String content) {
         if (200 == status) {
-            return new Result(product, "", Boolean.TRUE, version, new Date(), urls);
+            return new Result(product, "", Boolean.TRUE, version, pduiVersion, new Date(), urls);
         } else {
             LOGGER.info(String.format("Healthcheck status code != 200 for: %s (status code: %s)", urls.toString(), status));
             return new Result(product, content, Boolean.FALSE, version, new Date(), urls);

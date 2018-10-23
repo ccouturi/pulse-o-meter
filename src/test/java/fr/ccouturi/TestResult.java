@@ -15,6 +15,6 @@ public class TestResult {
         Date now = new Date(123456L);
         Result result = new Result("my_product", "PASS", Boolean.TRUE, "1.4", now, "http://test.fr");
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals("{\"product\":\"my_product\",\"status\":true,\"urls\":[\"http://test.fr\"],\"content\":\"PASS\",\"version\":\"1.4\",\"check_date\":123456}", mapper.writeValueAsString(result));
+        assertEquals("{\"product\":\"my_product\",\"status\":true,\"urls\":[\"http://test.fr\"],\"content\":\"PASS\",\"version\":\"1.4\",\"pduiVersion\":null,\"check_date\":123456}", mapper.writeValueAsString(result));
     }
 }

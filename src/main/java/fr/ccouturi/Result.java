@@ -21,6 +21,9 @@ public class Result {
     @JsonProperty
     private String version;
 
+    @JsonProperty
+    private String pduiVersion;
+
     @JsonProperty("check_date")
     private Date checkDate = new Date();
 
@@ -29,26 +32,29 @@ public class Result {
     }
 
     public Result(String product, Boolean status, String... urls) {
-        this.product = product;
-        this.status = status;
-        this.urls = urls;
+        this(product, null, status, urls);
     }
 
     public Result(String product, String content, Boolean status, String... urls) {
-        this.product = product;
-        this.status = status;
-        this.content = content;
-        this.urls = urls;
+        this(product, content, status, null, new Date(), urls);
     }
 
     public Result(String product, String content, Boolean status, String version, Date date, String... urls) {
+        this(product, content, status, version, null, date, urls);
+    }
+
+    public Result(String product, String content, Boolean status, String version, String pduiVersion, Date date, String... urls) {
         this.product = product;
         this.status = status;
         this.content = content;
         this.version = version;
+        this.pduiVersion = pduiVersion;
         this.urls = urls;
         this.checkDate = date;
     }
+
+
+
 
     @Override
     public String toString() {
@@ -57,6 +63,7 @@ public class Result {
         result.append(", status: " + status);
         result.append(", urls: " + urls);
         result.append(", version: "+version);
+        result.append(", pduiVersion: "+pduiVersion);
         result.append(", content: "+content);
         return result.toString();
     }
